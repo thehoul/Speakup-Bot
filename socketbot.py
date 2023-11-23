@@ -115,10 +115,10 @@ nb_req = int(sys.argv[3])
 nb_req_per_thread = 4 if nb_req >= 16 else 1
 nb_threads = int(nb_req/nb_req_per_thread)
 
-print(f"Nb req: {nb_req}")
-print(f"\tNb threads: {nb_threads}")
-print(f"\tNb req per thread: {nb_req_per_thread}")
-print(f"Voting for {answer} in room {room_id}")
+print(f"Number of votes to cast: {nb_req}")
+print(f"\tNumber of threads: {nb_threads}")
+print(f"\tNumber of vote per thread: {nb_req_per_thread}")
+print(f"Voting for {answer} in room {room_id}\n")
 
 prepare_templates(room_id)
 pb = tqdm(total=nb_req*4)
@@ -134,4 +134,5 @@ for index, thread in enumerate(threads):
 
 pb.close()
 el = pb.format_dict["elapsed"]
+print()
 print(f"Finished all jobs in {el:0.3f} seconds", flush=True)
