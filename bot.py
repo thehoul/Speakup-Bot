@@ -28,7 +28,7 @@ def vote_opt(driver, opt):
     if opt in opt_labels:
         ind = opt_labels.index(opt)
         options[ind].click()
-        time.sleep(2)
+        time.sleep(1)
 
 
 def vote(id, target, opt):
