@@ -87,19 +87,22 @@ def vote_answer(id, poll, answer, token):
         return False
 
 
-def run(id, room_id, answer, pb):
-    # Authenticate
-    token = authenticate()
-    pb.update()
-    # Join the room
-    resp_json = join_room(id, room_id, token)
-    pb.update()
-    # Get the poll
-    poll = get_poll(id, resp_json)
-    pb.update()
-    # Vote
-    if vote_answer(id, poll, answer, token):
+def run(id, room_id, answer, pb, iter):
+    i = 0
+    while i < iter:
+        # Authenticate
+        token = authenticate()
         pb.update()
+        # Join the room
+        resp_json = join_room(id, room_id, token)
+        pb.update()
+        # Get the poll
+        poll = get_poll(id, resp_json)
+        pb.update()
+        # Vote
+        if vote_answer(id, poll, answer, token):
+            pb.update()
+        i += 1
 
 if len(sys.argv) != NB_ARGS+1:
     print(f"Got {len(sys.argv) - 1} arguments, expected {NB_ARGS - 1}")
@@ -108,14 +111,21 @@ if len(sys.argv) != NB_ARGS+1:
 
 room_id = int(sys.argv[1])
 answer = str(sys.argv[2])
-nb_threads = int(sys.argv[3])
+nb_req = int(sys.argv[3])
+nb_req_per_thread = 4 if nb_req >= 16 else 1
+nb_threads = int(nb_req/nb_req_per_thread)
 
-print(f"Running {nb_threads} bots to vote for {answer} in room {room_id}", flush=True)
-pb = tqdm(total=nb_threads*4)
+print(f"Nb req: {nb_req}")
+print(f"\tNb threads: {nb_threads}")
+print(f"\tNb req per thread: {nb_req_per_thread}")
+print(f"Voting for {answer} in room {room_id}")
+
+prepare_templates(room_id)
+pb = tqdm(total=nb_req*4)
 
 threads = list()
 for index in range(nb_threads):
-    x = threading.Thread(target=run, args=(index, room_id, answer, pb))
+    x = threading.Thread(target=run, args=(index, room_id, answer, pb, nb_req_per_thread))
     threads.append(x)
     x.start()
 
