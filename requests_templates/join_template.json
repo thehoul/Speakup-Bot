@@ -1,0 +1,22 @@
+{
+    "operationName": "JoinRoom",
+    "variables": {
+        "joinKey": "23350",
+        "nickName": null,
+        "firstPost": 25,
+        "orderByPost": {
+            "createdAt": "desc"
+        },
+        "orderByPublishedPost": {
+            "isPublished": "desc"
+        },
+        "afterPost": null,
+        "wherePost": {},
+        "filterPollRes": {
+            "userId": {
+                "equals": "bf5b1f34-6121-42ee-a60b-3ab375dbcd26"
+            }
+        }
+    },
+    "query": "query JoinRoom($joinKey: String!, $nickName: String, $firstPost: Int!, $orderByPost: PostOrderByWithRelationInput!, $orderByPublishedPost: PostOrderByWithRelationInput!, $afterPost: PostWhereUniqueInput, $wherePost: PostWhereInput, $operation: String, $filterPollRes: PollOptionResultWhereInput!) {\n  roomAttendee: joinRoom(\n    joinKey: $joinKey\n    nickName: $nickName\n    firstPost: $firstPost\n    orderByPost: $orderByPost\n    orderByPublishedPost: $orderByPublishedPost\n    afterPost: $afterPost\n    wherePost: $wherePost\n    operation: $operation\n    filterPollRes: $filterPollRes\n  ) {\n    id\n    role\n    createdAt\n    lastSeenAt\n    joinKey\n    nickName\n    room {\n      ...RoomDetail\n      __typename\n    }\n    __typename\n  }\n}\n\nfragment RoomDetail on Room {\n  id\n  name\n  num\n  adminKey\n  isTemporary\n  isNicknames\n  isModerated\n  isPollOnly\n  isCommentsAllowed\n  isAutomaticFlow\n  createdAt\n  updatedAt\n  modifiedBy\n  createdBy {\n    id\n    __typename\n  }\n  polls {\n    ...PollDetail\n    options {\n      ...PollOptionDetail\n      results(where: $filterPollRes) {\n        ...PollOptionResultDetail\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n  posts(\n    first: $firstPost\n    orderBy: [$orderByPublishedPost, $orderByPost]\n    after: $afterPost\n    where: $wherePost\n  ) {\n    ...PostDetail\n    reactions {\n      ...PostReactionDetail\n      __typename\n    }\n    comments {\n      ...CommentDetail\n      reactions {\n        ...CommentReactionDetail\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n  __typename\n}\n\nfragment PostDetail on Post {\n  id\n  content\n  nickName\n  isFavorite\n  isPublished\n  createdAt\n  updatedAt\n  modifiedBy\n  createdBy {\n    id\n    __typename\n  }\n  room {\n    id\n    __typename\n  }\n  __typename\n}\n\nfragment PostReactionDetail on PostReaction {\n  id\n  reactionType\n  createdAt\n  updatedAt\n  modifiedBy\n  __typename\n}\n\nfragment CommentDetail on Comment {\n  id\n  content\n  nickName\n  isPublished\n  createdAt\n  updatedAt\n  createdBy {\n    id\n    __typename\n  }\n  post {\n    id\n    __typename\n  }\n  modifiedBy\n  __typename\n}\n\nfragment CommentReactionDetail on CommentReaction {\n  id\n  reactionType\n  createdAt\n  updatedAt\n  modifiedBy\n  __typename\n}\n\nfragment PollDetail on Poll {\n  id\n  content\n  extendedResultData\n  nickName\n  isMultipleResponses\n  isSolutions\n  isImmediateResults\n  isImmediateResultsBroadcast\n  isOpened\n  isResults\n  createdAt\n  updatedAt\n  options {\n    ...PollOptionDetail\n    __typename\n  }\n  createdBy {\n    id\n    __typename\n  }\n  room {\n    id\n    __typename\n  }\n  modifiedBy\n  __typename\n}\n\nfragment PollOptionDetail on PollOption {\n  id\n  label\n  isChecked\n  createdAt\n  updatedAt\n  modifiedBy\n  __typename\n}\n\nfragment PollOptionResultDetail on PollOptionResult {\n  id\n  isChecked\n  createdAt\n  updatedAt\n  __typename\n}\n"
+}

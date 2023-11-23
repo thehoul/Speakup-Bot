@@ -1,0 +1,9 @@
+{
+    "operationName": "UpdatePollOptionResults",
+    "variables": {
+        "pollId": "c76c9405-ab7c-4a12-8aa8-dd99fc148077",
+        "isImmediateResultsBroadcast": true,
+        "checkedOpId": "4391c7b3-dd30-4d9a-b3fb-b08965b0504c"
+    },
+    "query": "mutation UpdatePollOptionResults($pollId: ID!, $isImmediateResultsBroadcast: Boolean!, $checkedOpId: ID!) {\n  pollOptionResult: updatePollOptionsResult(\n    pollId: $pollId\n    isImmediateResultsBroadcast: $isImmediateResultsBroadcast\n    checkedOpId: $checkedOpId\n  ) {\n    ...PollOptionResultDetail\n    __typename\n  }\n}\n\nfragment PollOptionResultDetail on PollOptionResult {\n  id\n  isChecked\n  createdAt\n  updatedAt\n  __typename\n}\n"
+}
