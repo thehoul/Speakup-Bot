@@ -21,8 +21,8 @@ GRAPHQL = 'https://web.speakup.info/speakup/graphql'
 
 
 def prepare_templates(room_id):
-    JOIN_TEMPLATE['variables']['joinKey'] = str(room_id)
-    VALIDATE_KEY_TEMPLATE['joinKey'] = str(room_id)
+    JOIN_TEMPLATE['variables']['joinKey'] = f"{room_id:05d}"
+    VALIDATE_KEY_TEMPLATE['joinKey'] = f"{room_id:05d}"
 
 def load_json(template_path):
     with open(template_path) as f:
@@ -37,13 +37,18 @@ def authenticate():
 def join_room(id, key, token):
     '''
     response = requests.post(VALIDATE_KEY, json=VALIDATE_KEY_TEMPLATE, headers={"Authorization": str(token)})
-    if response.json()['ok'] == False:
-        print(f"Thread {id}: Couldn't join room...")
-        return None
+    try:
+        
+        if response.json()['ok'] == False:
+            print(f"Thread {id}: Couldn't join room...")
+            return None
+
+        return response.json()
+    except json.decoder.JSONDecodeError:
+        print(f"Thread {id}: Couldn't join room. Got response:\n{response.text}")
+        exit()
     '''
     response = requests.post(GRAPHQL, json=JOIN_TEMPLATE, headers={"Authorization": f"Bearer {token}"})
-
-    return response.json()
 
 def get_poll(id, attendee_json):
     polls = attendee_json['data']['roomAttendee']['room']['polls']
