@@ -2,6 +2,7 @@ import requests
 import json
 import sys
 import threading
+import argparse
 from tqdm import tqdm
 
 # Number of arguments for the script
@@ -34,10 +35,12 @@ def authenticate():
     return token
 
 def join_room(id, key, token):
+    '''
     response = requests.post(VALIDATE_KEY, json=VALIDATE_KEY_TEMPLATE, headers={"Authorization": str(token)})
     if response.json()['ok'] == False:
         print(f"Thread {id}: Couldn't join room...")
         return None
+    '''
     response = requests.post(GRAPHQL, json=JOIN_TEMPLATE, headers={"Authorization": f"Bearer {token}"})
 
     return response.json()
@@ -104,20 +107,21 @@ def run(id, room_id, answer, pb, iter):
             pb.update()
         i += 1
 
-if len(sys.argv) != NB_ARGS+1:
-    print(f"Got {len(sys.argv) - 1} arguments, expected {NB_ARGS - 1}")
-    print("Usage: python3 socketbot.py <room_id> <answer> <nb_threads>")
-    exit(1)
+parser = argparse.ArgumentParser(description='Vote on a poll in a SpeakUp room')
+parser.add_argument('room_id', metavar='room_id', type=int, help='The room ID')
+parser.add_argument('answer', metavar='answer', type=str, help='The answer to vote for')
+parser.add_argument('nb_votes', metavar='nb_votes', type=int, help='The number of votes to perform')
+parser.add_argument('-t', dest='nb_threads', action='store', type=int, default=1, help='The number of threads to use')
 
-room_id = int(sys.argv[1])
-answer = str(sys.argv[2])
-nb_req = int(sys.argv[3])
-nb_req_per_thread = 4 if nb_req >= 16 else 1
-nb_threads = int(nb_req/nb_req_per_thread)
+args = parser.parse_args()
 
-print(f"Number of votes to cast: {nb_req}")
-print(f"\tNumber of threads: {nb_threads}")
-print(f"\tNumber of vote per thread: {nb_req_per_thread}")
+room_id = args.room_id
+answer = args.answer
+nb_req = args.nb_votes
+nb_threads = args.nb_threads
+vote_per_thread = int(nb_req / nb_threads)
+
+print(f"Casting {vote_per_thread} votes in {nb_threads} threads (total: {nb_req} votes)")
 print(f"Voting for {answer} in room {room_id}\n")
 
 prepare_templates(room_id)
@@ -125,7 +129,7 @@ pb = tqdm(total=nb_req*4)
 
 threads = list()
 for index in range(nb_threads):
-    x = threading.Thread(target=run, args=(index, room_id, answer, pb, nb_req_per_thread))
+    x = threading.Thread(target=run, args=(index, room_id, answer, pb, vote_per_thread))
     threads.append(x)
     x.start()
 
