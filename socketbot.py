@@ -4,7 +4,7 @@ import sys
 import threading
 import argparse
 from tqdm import tqdm
-
+from store import Store
 # Number of arguments for the script
 NB_ARGS = 3
 
@@ -90,9 +90,8 @@ def vote_answer(id, poll, answer, token):
         return False
 
 
-def run(id, room_id, answer, pb, iter):
-    i = 0
-    while i < iter:
+def run(id, room_id, answer, pb, store):
+    while store.get_job():
         # Authenticate
         token = authenticate()
         pb.update()
@@ -105,7 +104,6 @@ def run(id, room_id, answer, pb, iter):
         # Vote
         if vote_answer(id, poll, answer, token):
             pb.update()
-        i += 1
 
 parser = argparse.ArgumentParser(description='Vote on a poll in a SpeakUp room')
 parser.add_argument('room_id', metavar='room_id', type=int, help='The room ID')
@@ -117,19 +115,21 @@ args = parser.parse_args()
 
 room_id = args.room_id
 answer = args.answer
-nb_req = args.nb_votes
+nb_votes = args.nb_votes
 nb_threads = args.nb_threads
-vote_per_thread = int(nb_req / nb_threads)
+vote_per_thread = int(nb_votes / nb_threads)
 
-print(f"Casting {vote_per_thread} votes in {nb_threads} threads (total: {nb_req} votes)")
+store = Store(nb_votes)
+
+print(f"Casting {nb_votes} votes in {nb_threads} threads")
 print(f"Voting for {answer} in room {room_id}\n")
 
 prepare_templates(room_id)
-pb = tqdm(total=nb_req*4)
+pb = tqdm(total=nb_votes*4)
 
 threads = list()
 for index in range(nb_threads):
-    x = threading.Thread(target=run, args=(index, room_id, answer, pb, vote_per_thread))
+    x = threading.Thread(target=run, args=(index, room_id, answer, pb, store))
     threads.append(x)
     x.start()
 
