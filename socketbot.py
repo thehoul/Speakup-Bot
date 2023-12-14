@@ -31,16 +31,12 @@ def load_json(template_path):
 def authenticate():
     response = requests.post(AUTH, json=AUTH_TEMPLATE)
     resp_json = response.json()
+    if 'accessToken' not in resp_json:
+        return None
     token = resp_json['accessToken']
     return token
 
 def join_room(id, key, token):
-    '''
-    response = requests.post(VALIDATE_KEY, json=VALIDATE_KEY_TEMPLATE, headers={"Authorization": str(token)})
-    if response.json()['ok'] == False:
-        print(f"Thread {id}: Couldn't join room...")
-        return None
-    '''
     response = requests.post(GRAPHQL, json=JOIN_TEMPLATE, headers={"Authorization": f"Bearer {token}"})
 
     return response.json()
@@ -93,18 +89,32 @@ def vote_answer(id, poll, answer, token):
 def run(id, room_id, answer, pb, iter):
     i = 0
     while i < iter:
-        # Authenticate
-        token = authenticate()
-        pb.update()
-        # Join the room
-        resp_json = join_room(id, room_id, token)
-        pb.update()
-        # Get the poll
-        poll = get_poll(id, resp_json)
-        pb.update()
-        # Vote
-        if vote_answer(id, poll, answer, token):
+        try:
+            # Authenticate
+            token = authenticate()
+            if token == None:
+                print("Authentication failed")
+                continue
             pb.update()
+
+            # Join the room
+            resp_json = join_room(id, room_id, token)
+            pb.update()
+
+            # Get the poll
+            poll = get_poll(id, resp_json)
+            if poll == None:
+                print("No poll to vote in was found. May be there are no open polls")
+                continue
+            pb.update()
+            # Vote
+            if vote_answer(id, poll, answer, token):
+                pb.update()
+            else:
+                print("Casting option is not available. Stopping")
+                exit()
+        except requests.exceptions.ConnectionError:
+            print("Error during sending")
         i += 1
 
 parser = argparse.ArgumentParser(description='Vote on a poll in a SpeakUp room')
